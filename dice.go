@@ -3,22 +3,22 @@ package dice
 import "errors"
 import "strings"
 import "fmt"
+import "strconv"
+import "math/rand/v2"
 
-// types
 type weight struct {
   left float64
   right float64
 }
 
-var operatorWeights = map[byte]weight {
-  '+': { 1.0, 1.1},
-  '-': { 1.0, 1.1},
-  '*': { 2.0, 2.1},
-  '/': { 2.0, 2.1},
+var operatorWeights = map[string]weight {
+  "+": { 1.0, 1.1},
+  "-": { 1.0, 1.1},
+  "*": { 2.0, 2.1},
+  "/": { 2.0, 2.1},
 }
 
 type tokenType int
-
 const (
   dice tokenType = iota
   literal
@@ -30,6 +30,41 @@ type token struct {
    tokenType tokenType
    value string
 }
+
+func (t token) evaluate() (int, error) {
+  switch t.tokenType {
+    case dice:
+        idx := strings.Index(t.value, "d")
+        if idx == -1 {
+          idx = strings.Index(t.value, "D")
+          if idx == -1 {
+            return 0, fmt.Errorf("Did not find 'd' or 'D' in token with type = dice and value = %s", t.value)
+          }
+        }
+
+        count, err := strconv.Atoi(t.value[:idx])
+        if err != nil {
+          return 0, err
+        }
+
+        faces, err := strconv.Atoi(t.value[idx+1:])
+        if err != nil {
+          return 0, err
+        }
+        
+        total := 0
+        for range count {
+          total += (rand.IntN(faces) + 1)
+        }
+        return total, nil
+
+    case literal:
+      return strconv.Atoi(t.value)
+    default:
+      return 0, fmt.Errorf("token type %d does not support evaluate.", t.tokenType)
+  }
+}
+
 
 // functions
 func isWhiteSpace(c byte) bool {
@@ -103,6 +138,100 @@ func tokenize(input string) ([]token, error) {
   return append(tokens, token{ eof, "" }), nil
 }
 
+type node struct {
+	token token
+	left *node
+	right *node
+}
+
+func nextToken(tokens []token) (token, []token) {
+	return tokens[0], tokens[1:]
+}
+
+func buildAstFromTokens(tokens []token, mbp float64) (*node, error) {
+	var err error
+	head, tokens := nextToken(tokens)
+	root := &node{ head, nil, nil }
+	if root.token.tokenType == operator && root.token.value == "(" {
+		root, err = buildAstFromTokens(tokens, 0.0)
+		if err != nil {
+			return nil, err
+		}
+		var temp token
+		temp, tokens = nextToken(tokens)
+		if temp.value != ")" {
+			return nil, fmt.Errorf("Expression should have closing paren but none were found.")
+		}
+
+	} else if root.token.tokenType != dice && root.token.tokenType != literal {
+		return nil, fmt.Errorf("Expression must start with a dice or literal. Found %d.", root.token.tokenType)
+	}
+
+	for {
+		if len(tokens) == 0 {
+			return root, nil
+		}
+
+		eofOrOp := tokens[0]
+		if eofOrOp.tokenType == eof || eofOrOp.value == ")" {
+			return root, nil
+		} else if eofOrOp.tokenType == dice || eofOrOp.tokenType == literal {
+			return nil, fmt.Errorf("Expected EOF or operation token. Found %d with value %s", eofOrOp.tokenType, eofOrOp.value)
+		}
+		
+		lbp, rbp := operatorWeights[eofOrOp.value].left, operatorWeights[eofOrOp.value].right
+		if lbp < mbp {
+			break
+		}
+
+		eofOrOp, tokens = nextToken(tokens)
+		rhs, err := buildAstFromTokens(tokens, rbp)
+
+		if err != nil {
+			return nil, err
+		}
+
+		root = &node{ eofOrOp, root, rhs }
+
+	}
+	
+	return root, nil	
+}
+
+func evaluateAst(root *node) (int, error) {
+	if root.token.tokenType == eof {
+		return 0, nil
+	}
+
+	if root.token.tokenType == operator {
+		if root.left == nil || root.right == nil {
+			return 0, fmt.Errorf("root node is an operator node with a nil right or left.")
+		}
+		lhs, err := evaluateAst(root.left)
+		if err != nil {
+			return 0, err
+		}
+		rhs, err := evaluateAst(root.right)
+		if err != nil {
+			return 0, err
+		}
+
+		switch root.token.value {
+			case "+":
+				return lhs + rhs, nil				
+			case "-":
+				return lhs - rhs, nil				
+			case "*":
+				return lhs * rhs, nil				
+			case "/":
+				return lhs / rhs, nil				
+			default:
+				return 0, fmt.Errorf("Invalid operator value found for token. Value was %s but should be +, -, *, or /.", root.token.value)
+		}
+	}
+
+	return root.token.evaluate()
+}
 // public entrypoint function for the module
 func Parse(input string) (int, error) {
   if strings.TrimSpace(input) == "" {
@@ -114,9 +243,10 @@ func Parse(input string) (int, error) {
     return 0, err
   }
 
-  for idx, token := range tokens {
-    fmt.Printf("%d. %s", idx, token.value)
-  }
-  
-  return 0, nil
+	ast, err := buildAstFromTokens(tokens, 0.0)
+	if err != nil {
+		return 0, err
+	}
+
+  return evaluateAst(ast)
 }
