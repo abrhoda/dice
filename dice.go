@@ -62,7 +62,6 @@ func (t token) evaluate() (int, error) {
 		}
 
 		total := 0
-		fmt.Printf("count = %d, faces = %d\n", count, faces)
 		for range count {
 			total += (rand.IntN(faces) + 1)
 		}
@@ -84,6 +83,14 @@ func isDigit(c byte) bool {
 	return c >= '0' && c <= '9'
 }
 
+func isDiceCharacter(c byte) bool {
+	return c == 'd' || c == 'D'
+}
+
+func isOperator(c byte) bool {
+  return c == '+' || c == '-' || c == '*' || c == '/' || c == '(' || c == ')'
+}
+
 func tokenize(input string) ([]token, error) {
 	tokens := make([]token, 0, 10) // picking a default capacity that will fit most simple expressions
 	start, end := 0, 0
@@ -93,18 +100,18 @@ func tokenize(input string) ([]token, error) {
 		c := input[end]
 		if isDigit(c) {
 			end++
-		} else if c == 'd' || c == 'D' {
+		} else if isDiceCharacter(c) {
 			if isExpression {
 				return nil, fmt.Errorf("Multiple d/D in the same expression at position %d.", end)
 			}
 			isExpression = true
 			end++
-		} else if c == '+' || c == '-' || c == '*' || c == '/' || c == '(' || c == ')' {
+		} else if isOperator(c) {
 			if start != end {
 				if !isExpression {
 					tokens = append(tokens, token{literal, string(input[start:end])})
 				} else {
-					if input[end-1] == 'd' || input[end-1] == 'D' {
+					if isDiceCharacter(input[end-1]) {
 						return nil, fmt.Errorf("Dice expression was malformed for token %s at position %d", input[start:end], end-1)
 					}
 					tokens = append(tokens, token{dice, string(input[start:end])})
@@ -119,7 +126,7 @@ func tokenize(input string) ([]token, error) {
 				if !isExpression {
 					tokens = append(tokens, token{literal, string(input[start:end])})
 				} else {
-					if input[end-1] == 'd' || input[end-1] == 'D' {
+					if isDiceCharacter(input[end-1]) {
 						return nil, fmt.Errorf("Dice expression was malformed for token %s at position %d", input[start:end], end-1)
 					}
 					tokens = append(tokens, token{dice, string(input[start:end])})
@@ -136,7 +143,7 @@ func tokenize(input string) ([]token, error) {
 		if !isExpression {
 			tokens = append(tokens, token{literal, string(input[start:end])})
 		} else {
-			if input[end-1] == 'd' || input[end-1] == 'D' {
+			if isDiceCharacter(input[end-1]) {
 				return nil, fmt.Errorf("Dice expression was malformed for token %s at position %d", input[start:end], end-1)
 			}
 			tokens = append(tokens, token{dice, string(input[start:end])})
