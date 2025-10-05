@@ -2,7 +2,7 @@ package main
 
 // binding power type and mapping
 type weight struct {
-	lbp  float64
+	lbp float64
 	rbp float64
 }
 
@@ -16,13 +16,13 @@ var operatorBindingPowers = map[string]weight{
 // node type and functions
 type node struct {
 	token token
-	left *node
+	left  *node
 	right *node
 }
 
 type Parser struct {
-	buffer []byte
-	curTokenPos int 
+	buffer      []byte
+	curTokenPos int
 }
 
 func NewParser(buffer []byte) Parser {

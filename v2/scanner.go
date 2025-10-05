@@ -1,40 +1,19 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
-	"io"
-	"strings"
 )
 
-// TODO - consider not using bufio.Reader
-// a lot of lexers/scanners/tokenizers use a struct like below:
-//
-// type scanner2 struct {
-// 	buffer []byte
-// 	startPos int // start position of the current token
-// 	currentPos int // current position over the entire buffer
-// 	endPos int // last position of the current token
-// }
-//
-// and then token would be: 
-// 
-// type token2 struct {
-// 	tokenType tokenTyp // eof, operator, literal, or dice 
-// 	startPos // starting position of this token in the scanner's buffer
-// 	length // how many bytes make up this token
-// }
-
 type scanner struct {
-	buffer []byte // input string of bytes
-	startPos int // start position of the current token
-	currentPos int // current position over the entire buffer
- 	endPos int // last position of the current token
+	buffer     []byte // input string of bytes
+	startPos   int    // start position of the current token
+	currentPos int    // current position over the entire buffer
+	//endPos int // last position of the current token
 }
 
 type scannerError struct {
 	Message string
-	index int
+	index   int
 }
 
 func (err scannerError) Error() string {
@@ -42,7 +21,7 @@ func (err scannerError) Error() string {
 }
 
 func newScanner(buffer []byte) *scanner {
-	return &scanner{buffer, 0, 0, 0}
+	return &scanner{buffer, 0, 0}
 }
 
 // peekByte returns the byte at currentPos without advancing the cursor
@@ -77,7 +56,7 @@ func isDiceCharacter(b byte) bool {
 }
 
 func isOperator(b byte) bool {
-  return b == '+' || b == '-' || b == '*' || b == '/' || b == '(' || b == ')'
+	return b == '+' || b == '-' || b == '*' || b == '/' || b == '(' || b == ')'
 }
 
 // limit the bytes to a subset
@@ -92,62 +71,67 @@ func (scanner *scanner) readToken() (token, error) {
 
 	// remove this and all subsequent whitespace characters
 	for isWhiteSpace(b) {
+		scanner.startPos++
 		b = scanner.readByte()
 	}
-	
+
 	if !isValidByte(b) {
-		return token{}, fmt.Errorf("Invalid byte (%c) found in token.", b)
+		return token{}, scannerError{"Invalid byte (%c) found in buffer.", scanner.currentPos}
 	}
 
 	if b == EOF {
-		return token { eof, "" }, nil
-	}
-	
-	if isOperator(b) {
-		return &token{operator, string(b)} , nil
+		t := token{eof, scanner.startPos, scanner.currentPos}
+		scanner.startPos = scanner.currentPos
+		return t, nil
 	}
 
-	var sb strings.Builder
-	sb.WriteByte(b)
+	if isOperator(b) {
+		t := token{operator, scanner.startPos, scanner.currentPos}
+		scanner.startPos = scanner.currentPos
+		return t, nil
+	}
 
 	isDiceExp := false
 	if isDiceCharacter(b) {
 		isDiceExp = true
 	}
-	
+
 	// peek bytes 1 by 1, checking type and, when appropriate, adding to string builder by actually reading and then peeking the next byte
-	p  := scanner.peekByte()
+	p := scanner.peekByte()
 	for {
 		if isDigit(p) {
-			sb.WriteByte(scanner.readByte())
+			_ = scanner.readByte()
 			p = scanner.peekByte()
 		} else if isDiceCharacter(p) {
-			if isDiceExp {
-				return nil, fmt.Errorf("Multiple d/D characters found in dice expression after %s.", sb.String())
-			}
+
+			// NOTE this isn't needed.
+			//if isDiceExp {
+			//	return token{}, scannerError{"Multiple d/D characters found in dice expression.", scanner.currentPos}
+			//}
+
 			isDiceExp = true
 
 			b = scanner.readByte()
 			if b == 'D' {
 				b = 'd'
 			}
-			sb.WriteByte(b)
-
 			// check if byte after d/D is a digit
 			p = scanner.peekByte()
 			if !isDigit(p) {
-				return nil, fmt.Errorf("Character after d/D not a digit. Found %c", p)
+				return token{}, scannerError{fmt.Sprintf("Character after d/D not a digit. Found %c", p), scanner.currentPos}
 			}
 		} else if isWhiteSpace(p) || isOperator(p) || p == EOF {
 			break
 		} else {
-			return nil, fmt.Errorf("Invalid byte (%c) found in token.", p)
+			return token{}, scannerError{fmt.Sprintf("Invalid byte (%c) found in token.", p), scanner.currentPos}
 		}
 	}
 
+	// TODO clean this up. Default and then check and change isn't great.
+	t := token{literal, scanner.startPos, scanner.currentPos}
 	if isDiceExp {
-		return &token{ dice, sb.String() }, nil
-	} else {
-		return &token{ literal, sb.String() }, nil
+		t.tType = dice
 	}
+	scanner.startPos = scanner.currentPos
+	return t, nil
 }
