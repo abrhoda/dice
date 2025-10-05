@@ -1,9 +1,16 @@
 package main
 
-type tType int
+import (
+	"fmt"
+	"math/rand/v2"
+	"strconv"
+	"strings"
+)
+
+type tokenType int
 
 const (
-	eof tType = iota
+	eof tokenType = iota
 	operator
 	dice
 	literal
@@ -11,47 +18,46 @@ const (
 const EOF = byte(0)
 
 type token struct {
-	tType    tType
-	startPos int // start index in the scanner's buffer
-	endPos   int // end index in the scanner's buffer (not inclusive)
+	kind  tokenType
+	value string
 }
 
-// TODO changing token to have startPos and length fields instead of a value field broke this
-// func (token token) evaluate() (int, error) {
-// 	switch token.tType {
-// 	case dice:
-// 		idx := slices.Index(token.value, "d")
-// 		if idx == -1 {
-// 			idx = strings.Index(token.value, "D")
-// 			if idx == -1 {
-// 				return 0, fmt.Errorf("Did not find 'd' or 'D' in token with type = dice and value = %s", token.value)
-// 			}
-// 		}
-//
-// 		count := 1
-// 		var err error
-//
-// 		if idx != 0 {
-// 			count, err = strconv.Atoi(token.value[:idx])
-// 			if err != nil {
-// 				return 0, err
-// 			}
-// 		}
-//
-// 		faces, err := strconv.Atoi(token.value[idx+1:])
-// 		if err != nil {
-// 			return 0, err
-// 		}
-//
-// 		total := 0
-// 		for range count {
-// 			total += (rand.IntN(faces) + 1)
-// 		}
-// 		return total, nil
-//
-// 	case literal:
-// 		return strconv.Atoi(token.value)
-// 	default:
-// 		return 0, fmt.Errorf("Token type %d does not support evaluate.", token.tType)
-// 	}
-// }
+func (token token) evaluate() (int, error) {
+	switch token.kind {
+	case dice:
+		idx := strings.Index(token.value, "d")
+		if idx == -1 {
+			// NOTE there should never be a 'D' in the slice as scanner.readToken is turning this to 'd'
+			idx = strings.Index(token.value, "D")
+			if idx == -1 {
+				return 0, fmt.Errorf("Did not find 'd' or 'D' in token with type = dice and value = %s", token.value)
+			}
+		}
+
+		count := 1
+		var err error
+
+		if idx != 0 {
+			count, err = strconv.Atoi(token.value[:idx])
+			if err != nil {
+				return 0, err
+			}
+		}
+
+		faces, err := strconv.Atoi(token.value[idx+1:])
+		if err != nil {
+			return 0, err
+		}
+
+		total := 0
+		for range count {
+			total += (rand.IntN(faces) + 1)
+		}
+		return total, nil
+
+	case literal:
+		return strconv.Atoi(string(token.value))
+	default:
+		return 0, fmt.Errorf("Token type %d does not support evaluate.", token.kind)
+	}
+}

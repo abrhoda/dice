@@ -26,20 +26,20 @@ func newScanner(buffer []byte) *scanner {
 
 // peekByte returns the byte at currentPos without advancing the cursor
 func (scanner *scanner) peekByte() byte {
-	if (scanner.currentPos) >= len(scanner.buffer) {
-		return EOF
+	if (scanner.currentPos) < len(scanner.buffer) {
+		return scanner.buffer[scanner.currentPos]
 	}
-	return scanner.buffer[scanner.currentPos]
+	return EOF
 }
 
 // readByte returns the byte at currentPos and advances the cursor
 func (scanner *scanner) readByte() byte {
-	if (scanner.currentPos) >= len(scanner.buffer) {
-		return EOF
+	if (scanner.currentPos) < len(scanner.buffer) {
+		p := scanner.currentPos
+		scanner.currentPos++
+		return scanner.buffer[p]
 	}
-	p := scanner.currentPos
-	scanner.currentPos++
-	return scanner.buffer[p]
+	return EOF
 }
 
 // functions
@@ -80,13 +80,13 @@ func (scanner *scanner) readToken() (token, error) {
 	}
 
 	if b == EOF {
-		t := token{eof, scanner.startPos, scanner.currentPos}
+		t := token{eof, string(scanner.buffer[scanner.startPos:scanner.currentPos])}
 		scanner.startPos = scanner.currentPos
 		return t, nil
 	}
 
 	if isOperator(b) {
-		t := token{operator, scanner.startPos, scanner.currentPos}
+		t := token{operator, string(scanner.buffer[scanner.startPos:scanner.currentPos])}
 		scanner.startPos = scanner.currentPos
 		return t, nil
 	}
@@ -128,9 +128,9 @@ func (scanner *scanner) readToken() (token, error) {
 	}
 
 	// TODO clean this up. Default and then check and change isn't great.
-	t := token{literal, scanner.startPos, scanner.currentPos}
+	t := token{literal, string(scanner.buffer[scanner.startPos:scanner.currentPos])}
 	if isDiceExp {
-		t.tType = dice
+		t.kind = dice
 	}
 	scanner.startPos = scanner.currentPos
 	return t, nil
