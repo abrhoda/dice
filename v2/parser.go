@@ -13,18 +13,37 @@ var operatorBindingPowers = map[string]weight{
 	"/": {2.0, 2.1},
 }
 
-// node type and functions
-type node struct {
-	token token
-	left  *node
-	right *node
-}
+// Picking a defualt slice size that will fit most common dice expressions
+const DefaultTokenSliceSize = 10
 
 type Parser struct {
-	buffer      []byte
-	curTokenPos int
+	buffer         []byte
+	tokens         []token
+	curentTokenPos int
+	//isError        bool
 }
 
 func NewParser(buffer []byte) Parser {
-	return Parser{buffer, 0}
+	return Parser{buffer, make([]token, 0, DefaultTokenSliceSize), 0}
+}
+
+// NOTE assemble in ast. Should dice tokens just be evaluated when putting them into the ast?
+
+func (parser Parser) Parse() (int, error) {
+
+	// scan tokens into parser.tokens
+	s := newScanner(parser.buffer)
+	for {
+		t, err := s.readToken()
+		if err != nil {
+			return 0, err
+		}
+		parser.tokens = append(parser.tokens, t)
+
+		if t.tType == eof {
+			break
+		}
+	}
+
+	return 0, nil
 }
