@@ -6,14 +6,14 @@ import (
 	"testing"
 )
 
-type tokenizeTestCase struct {
+type scannerTestCase struct {
 	name           string
 	input          string
 	expectedTokens []token
 	expectedError  error
 }
 
-var invalidTokenizeTestCases = []tokenizeTestCase{
+var invalidTokenizeTestCases = []scannerTestCase{
 	{"Missing number after d in dice expression when operator follows", "1d+1", nil, errors.New("Dice expression was malformed for token 1d at position 1")},
 	{"Missing number after d in dice expression when space follows", "1d + 1", nil, errors.New("Dice expression was malformed for token 1d at position 1")},
 	{"Missing number after d in dice expression at end of input string", "1+2d", nil, errors.New("Dice expression was malformed for token 2d at position 3")},
@@ -21,7 +21,7 @@ var invalidTokenizeTestCases = []tokenizeTestCase{
 	{"Invalid characters in input string", "1c2+3", nil, errors.New("Unknown/invalid character (c) found at position 1")},
 }
 
-var validTokenizeTestCases = []tokenizeTestCase{
+var validTokenizeTestCases = []scannerTestCase{
 	{"Only a number is a valid token", "10", []token{{literal, "10"}, {eof, ""}}, nil},
 	{"Only a dice expression that has the pattern XdY is a valid token", "1d6", []token{{dice, "1d6"}, {eof, ""}}, nil},
 	{"Only a dice expression that has the pattern dY is a valid token", "d6", []token{{dice, "d6"}, {eof, ""}}, nil},
@@ -76,7 +76,7 @@ func TestTokenizeWithValidInputString(t *testing.T) {
 	}
 }
 
-type evaluateTokenTestCase struct {
+type parseTestCase struct {
 	name                    string
 	token                   token
 	expectedValueLowerBound int
@@ -84,7 +84,7 @@ type evaluateTokenTestCase struct {
 	expcetedError           error
 }
 
-var invalidEvaluateTokenTestCases = []evaluateTokenTestCase{
+var invalidEvaluateTokenTestCases = []parseTestCase{
 	{"Error when EOF token type has .evaluate() called", token{eof, ""}, 0, 0, errors.New("Token type 3 does not support evaluate.")},
 	{"Error when operator token type has .evaluate() called", token{operator, "+"}, 0, 0, errors.New("Token type 2 does not support evaluate.")},
 	{"Error when dice token type has no d/D and .evaluate() called", token{dice, "1"}, 0, 0, errors.New("Did not find 'd' or 'D' in token with type = dice and value = 1")},
@@ -92,7 +92,7 @@ var invalidEvaluateTokenTestCases = []evaluateTokenTestCase{
 	{"Error when literal token type is a dice expression and .evalute() called", token{literal, "1d6"}, 0, 0, errors.New("strconv.Atoi(t.value) should return error.")},
 }
 
-var validEvaluateTokenTestCases = []evaluateTokenTestCase{
+var validEvaluateTokenTestCases = []parseTestCase{
 	{"Int returned when literal token type with single digit value and .evaluate() called", token{literal, "6"}, 6, 6, nil},
 	{"Int returned when literal token type with many digit value and .evaluate() called", token{literal, "100"}, 100, 100, nil},
 	{"Int returned when dice token type has expression with no count and only faces.", token{dice, "d6"}, 1, 6, nil}, // 1-6
