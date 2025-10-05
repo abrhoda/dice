@@ -88,7 +88,7 @@ func isDiceCharacter(c byte) bool {
 }
 
 func isOperator(c byte) bool {
-  return c == '+' || c == '-' || c == '*' || c == '/' || c == '(' || c == ')'
+	return c == '+' || c == '-' || c == '*' || c == '/' || c == '(' || c == ')'
 }
 
 func tokenize(input string) ([]token, error) {
