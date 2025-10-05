@@ -16,8 +16,6 @@ func NewParser(buffer []byte) Parser {
 	return Parser{buffer, make([]token, 0, DefaultTokenSliceSize), 0}
 }
 
-
-
 type weight struct {
 	left  float64
 	right float64
@@ -80,7 +78,7 @@ func (p *Parser) astFromTokens(mbp float64) (*node, error) {
 }
 
 func (parser *Parser) Parse() (int, error) {
-	s := newScanner(parser.Buffer)
+	s := scanner{parser.Buffer, 0, 0}
 	for {
 		t, err := s.readToken()
 		if err != nil {
@@ -93,10 +91,10 @@ func (parser *Parser) Parse() (int, error) {
 		}
 	}
 
-  ast, err := parser.astFromTokens(0.0)
+	ast, err := parser.astFromTokens(0.0)
 	if err != nil {
 		return 0, err
 	}
-	
+
 	return walk(ast)
 }
