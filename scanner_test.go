@@ -2,6 +2,8 @@ package dice
 
 import (
 	"errors"
+	"fmt"
+
 	//	"fmt"
 	"math/rand/v2"
 	"testing"
@@ -157,39 +159,74 @@ var operatorBytes = []byte{'+', '-', '*', '/', '(', ')'}
 
 func getRandomByteOutsideSet(excludes []byte) byte {
 	randomByte := byte(rand.IntN(128))
-	found := false
 	for {
+		found := false
 		for _, b := range excludes {
 			if b == randomByte {
 				randomByte = byte(rand.IntN(128))
 				found = true
-				break
 			}
 		}
+
 		if !found {
 			return randomByte
 		}
 	}
+
 }
 
-var isWhitespaceTestCases = []byteFunctionTestCase{
-	{"space is a whitespace char", whitespaceBytes[0], true},
-	{"\\n (newline char) is a whitespace char", whitespaceBytes[1], true},
-	{"\\r (return char) is a whitespace char", whitespaceBytes[2], true},
-	{"\\v (vert tab char) is a whitespace char", whitespaceBytes[3], true},
-	{"\\t (tab char) is a whitespace char", whitespaceBytes[4], true},
-	{"Other char is not whitespace", getRandomByteOutsideSet(whitespaceBytes), false},
+func buildByteFunctionTestCases(byteFunctionName string, successBytes []byte) []byteFunctionTestCase {
+	cases := make([]byteFunctionTestCase, 0, 5)
+	var b byte
+	for _, b = range successBytes {
+		cases = append(cases, byteFunctionTestCase{fmt.Sprintf("%c is valid for %s", b, byteFunctionName), b, true})
+	}
+	b = getRandomByteOutsideSet(successBytes)
+	cases = append(cases, byteFunctionTestCase{fmt.Sprintf("%c is not valid for %s", b, byteFunctionName), b, false})
+	return cases
 }
 
-var isDigitTestCases = []byteFunctionTestCase{
-	{"0-9 are valid digits", digitBytes[rand.IntN(len(digitBytes))], true},
-	{"Chars outside 0-9 are not valid", getRandomByteOutsideSet(digitBytes), false},
+var isWhiteSpaceTestCases []byteFunctionTestCase = buildByteFunctionTestCases("isWhiteSpace", whitespaceBytes)
+var isDigitTestCases []byteFunctionTestCase = buildByteFunctionTestCases("isDigit", digitBytes)
+var isDiceCharacterTestCases []byteFunctionTestCase = buildByteFunctionTestCases("isDiceCharacter", diceCharacterBytes)
+var isOperatorTestCases []byteFunctionTestCase = buildByteFunctionTestCases("isOperator", operatorBytes)
+
+func TestScannerIsWhiteSpace(t *testing.T) {
+	for _, tc := range isWhiteSpaceTestCases {
+		t.Run(tc.name, func(t *testing.T) {
+			if isWhiteSpace(tc.in) != tc.expected {
+				t.Fatalf("Expected '%c' to be %t but was not.\n", tc.in, tc.expected)
+			}
+		})
+	}
 }
 
-var isDiceCharTestCases = []byteFunctionTestCase{
-	{"d is a dice char", 'd', true},
-	{"D is a dice char", 'D', true},
-	{"Bytes that aren't d or D are not valid", getRandomByteOutsideSet(diceCharacterBytes), false},
+func TestScannerIsDigit(t *testing.T) {
+	for _, tc := range isDigitTestCases {
+		t.Run(tc.name, func(t *testing.T) {
+			if isDigit(tc.in) != tc.expected {
+				t.Fatalf("Expected '%c' to be %t but was not.\n", tc.in, tc.expected)
+			}
+		})
+	}
 }
 
-var isOperatorTestCases = byteFunctionTestCase{}
+func TestScannerIsDiceCharacter(t *testing.T) {
+	for _, tc := range isDiceCharacterTestCases {
+		t.Run(tc.name, func(t *testing.T) {
+			if isDiceCharacter(tc.in) != tc.expected {
+				t.Fatalf("Expected '%c' to be %t but was not.\n", tc.in, tc.expected)
+			}
+		})
+	}
+}
+
+func TestScannerIsOperator(t *testing.T) {
+	for _, tc := range isOperatorTestCases {
+		t.Run(tc.name, func(t *testing.T) {
+			if isOperator(tc.in) != tc.expected {
+				t.Fatalf("Expected '%c' to be %t but was not.\n", tc.in, tc.expected)
+			}
+		})
+	}
+}
