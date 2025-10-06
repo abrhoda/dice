@@ -27,6 +27,8 @@ jobs:
         run: make build
       - name: Test with the Go CLI
         run: make test
+      - name: Generate Coverage Report # this does rerun tests
+        run: make cover
       - name: Check Coverage Percent
         env:
           THRESHOLD: "30.0"
