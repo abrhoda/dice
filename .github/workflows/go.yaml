@@ -22,8 +22,14 @@ jobs:
       #- name: Install dependencies
       #  run: go get .
       - name: Format
-        run: go fmt ./...
+        run: make format
       - name: Build
-        run: go build -v ./...
+        run: make build
       - name: Test with the Go CLI
-        run: go test
+        run: make test
+      - name: Check Coverage Percent
+        env:
+          THRESHOLD: "30.0"
+          COVERAGE_FILE: "./out/coverage.out"
+        run: |
+          bash ./scripts/coverage_threshold.bash $COVERAGE_FILE $THRESHOLD
