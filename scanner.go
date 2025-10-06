@@ -1,4 +1,4 @@
-package main
+package dice
 
 import (
 	"fmt"
@@ -8,20 +8,6 @@ type scanner struct {
 	buffer     []byte // input string of bytes
 	startPos   int    // start position of the current token
 	currentPos int    // current position over the entire buffer
-	//endPos int // last position of the current token
-}
-
-type scannerError struct {
-	Message string
-	index   int
-}
-
-func (err scannerError) Error() string {
-	return err.Message
-}
-
-func newScanner(buffer []byte) *scanner {
-	return &scanner{buffer, 0, 0}
 }
 
 // peekByte returns the byte at currentPos without advancing the cursor
@@ -76,7 +62,7 @@ func (scanner *scanner) readToken() (token, error) {
 	}
 
 	if !isValidByte(b) {
-		return token{}, scannerError{"Invalid byte (%c) found in buffer.", scanner.currentPos}
+		return token{}, fmt.Errorf("Invalid byte (%c) found in buffer.", b)
 	}
 
 	if b == EOF {
@@ -112,18 +98,18 @@ func (scanner *scanner) readToken() (token, error) {
 			isDiceExp = true
 
 			b = scanner.readByte()
-			if b == 'D' {
-				b = 'd'
-			}
+			// if b == 'D' {
+			//   b = 'd'
+			// }
 			// check if byte after d/D is a digit
 			p = scanner.peekByte()
 			if !isDigit(p) {
-				return token{}, scannerError{fmt.Sprintf("Character after d/D not a digit. Found %c", p), scanner.currentPos}
+				return token{}, fmt.Errorf("Character after d/D not a digit. Found %c", p)
 			}
 		} else if isWhiteSpace(p) || isOperator(p) || p == EOF {
 			break
 		} else {
-			return token{}, scannerError{fmt.Sprintf("Invalid byte (%c) found in token.", p), scanner.currentPos}
+			return token{}, fmt.Errorf("Invalid byte (%c) found in token.", p)
 		}
 	}
 

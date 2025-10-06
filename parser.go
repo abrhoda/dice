@@ -1,6 +1,20 @@
-package main
+package dice
 
 import "fmt"
+
+// Picking a defualt slice size that will fit most common dice expressions
+const DefaultTokenSliceSize = 10
+
+type Parser struct {
+	Buffer          []byte
+	tokens          []token
+	currentTokenPos int
+	//isError        bool
+}
+
+func NewParser(buffer []byte) Parser {
+	return Parser{buffer, make([]token, 0, DefaultTokenSliceSize), 0}
+}
 
 type weight struct {
 	left  float64
@@ -12,12 +26,6 @@ var operatorWeights = map[string]weight{
 	"-": {1.0, 1.1},
 	"*": {2.0, 2.1},
 	"/": {2.0, 2.1},
-}
-
-type node struct {
-	token token
-	left  *node
-	right *node
 }
 
 func (p *Parser) astFromTokens(mbp float64) (*node, error) {
@@ -69,37 +77,24 @@ func (p *Parser) astFromTokens(mbp float64) (*node, error) {
 	return root, nil
 }
 
-func walk(root *node) (int, error) {
-	if root.token.kind == eof {
-		return 0, nil
-	}
-	fmt.Printf("root node: %v\n", root)
-
-	if root.token.kind == operator {
-		if root.left == nil || root.right == nil {
-			return 0, fmt.Errorf("root node is an operator node with a nil right or left.")
-		}
-		lhs, err := walk(root.left)
+func (parser *Parser) Parse() (int, error) {
+	s := scanner{parser.Buffer, 0, 0}
+	for {
+		t, err := s.readToken()
 		if err != nil {
 			return 0, err
 		}
-		rhs, err := walk(root.right)
-		if err != nil {
-			return 0, err
-		}
+		parser.tokens = append(parser.tokens, t)
 
-		switch root.token.value {
-		case "+":
-			return lhs + rhs, nil
-		case "-":
-			return lhs - rhs, nil
-		case "*":
-			return lhs * rhs, nil
-		case "/":
-			return lhs / rhs, nil
-		default:
-			return 0, fmt.Errorf("Invalid operator value found for token. Value was %s but should be +, -, *, or /.", root.token.value)
+		if t.kind == eof {
+			break
 		}
 	}
-	return root.token.evaluate()
+
+	ast, err := parser.astFromTokens(0.0)
+	if err != nil {
+		return 0, err
+	}
+
+	return walk(ast)
 }
