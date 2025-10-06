@@ -22,6 +22,7 @@ var invalidScannerTestCases = []scannerTestCase{
 	{"Missing number after d in dice expression at end of input string", "1+2d", nil, errors.New("Dice expression was malformed for token 2d at position 3")},
 	{"Multiple d/D in same expression", "1dd2+3", nil, errors.New("Multiple d/D in the same expression at poisiton 2")},
 	{"Invalid characters in input string", "1c2+3", nil, errors.New("Unknown/invalid character (c) found at position 1")},
+	{"Invalid characters at start of a term", "c2", nil, errors.New("Unknown/invalid character (c) found at position 1")},
 }
 
 var validScannerTestCases = []scannerTestCase{
@@ -31,6 +32,7 @@ var validScannerTestCases = []scannerTestCase{
 	{"Input has '(' and ')' around any number of terms", "(d6+1)*2", []token{{operator, "("}, {dice, "d6"}, {operator, "+"}, {literal, "1"}, {operator, ")"}, {operator, "*"}, {literal, "2"}, {eof, ""}}, nil},
 	{"Input has many '(' and ')' around any number of terms", "((d6+1)*2)+(2d12/2)", []token{{operator, "("}, {operator, "("}, {dice, "d6"}, {operator, "+"}, {literal, "1"}, {operator, ")"}, {operator, "*"}, {literal, "2"}, {operator, ")"}, {operator, "+"}, {operator, "("}, {dice, "2d12"}, {operator, "/"}, {literal, "2"}, {operator, ")"}, {eof, ""}}, nil},
 
+	{"Input has many whitespace characters and terms", "(     d6\n+\v    \r1)   *\t2", []token{{operator, "("}, {dice, "d6"}, {operator, "+"}, {literal, "1"}, {operator, ")"}, {operator, "*"}, {literal, "2"}, {eof, ""}}, nil},
 	// below are valid input strings for the tokenize method but aren't valid in the lexer.
 	{"Only an operator is a valid token", "-", []token{{operator, "-"}, {eof, ""}}, nil},
 	{"Only an operator is a valid token", "-*/", []token{{operator, "-"}, {operator, "*"}, {operator, "/"}, {eof, ""}}, nil},

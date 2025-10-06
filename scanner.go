@@ -8,18 +8,7 @@ type scanner struct {
 	buffer     []byte // input string of bytes
 	startPos   int    // start position of the current token
 	currentPos int    // current position over the entire buffer
-	//endPos int // last position of the current token
 }
-
-// NOTE can change to typed errors in the future
-// type scannerError struct {
-// 	Message string
-// 	index   int
-// }
-
-// func (err scannerError) Error() string {
-// 	return err.Message
-// }
 
 // peekByte returns the byte at currentPos without advancing the cursor
 func (scanner *scanner) peekByte() byte {
@@ -109,9 +98,9 @@ func (scanner *scanner) readToken() (token, error) {
 			isDiceExp = true
 
 			b = scanner.readByte()
-			if b == 'D' {
-				b = 'd'
-			}
+			// if b == 'D' {
+			//   b = 'd'
+			// }
 			// check if byte after d/D is a digit
 			p = scanner.peekByte()
 			if !isDigit(p) {
