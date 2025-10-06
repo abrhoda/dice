@@ -36,7 +36,7 @@ coverfunc: cover ## generate a report about % coverage by function to stdout
 
 .PHONY: coverpercent
 coverpercant: cover ## outputs the total unit test coverage % for project.
-	@bash ./scripts/coverage.bash $(OUT_DIR)/$(COVER_PROFILE) $(COVERAGE_THRESHOLD)
+	@bash ./scripts/coverage_threshold.bash $(OUT_DIR)/$(COVER_PROFILE) $(COVERAGE_THRESHOLD)
 
 .PHONY: cleancoverage
 cleancoverage: ## clean up the generated coverage.out file
