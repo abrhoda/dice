@@ -27,7 +27,6 @@ func (token token) evaluate() (int, error) {
 	case dice:
 		idx := strings.Index(token.value, "d")
 		if idx == -1 {
-			// NOTE there should never be a 'D' in the slice as scanner.readToken is turning this to 'd'
 			idx = strings.Index(token.value, "D")
 			if idx == -1 {
 				return 0, fmt.Errorf("Did not find 'd' or 'D' in token with type = dice and value = %s", token.value)

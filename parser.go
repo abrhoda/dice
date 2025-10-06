@@ -3,17 +3,17 @@ package dice
 import "fmt"
 
 // Picking a defualt slice size that will fit most common dice expressions
-const DefaultTokenSliceSize = 10
+const defaultTokenSliceSize = 10
 
 type Parser struct {
-	Buffer          []byte
+	buffer          []byte
 	tokens          []token
 	currentTokenPos int
 	//isError        bool
 }
 
 func NewParser(buffer []byte) Parser {
-	return Parser{buffer, make([]token, 0, DefaultTokenSliceSize), 0}
+	return Parser{buffer, make([]token, 0, defaultTokenSliceSize), 0}
 }
 
 type weight struct {
@@ -78,7 +78,7 @@ func (p *Parser) astFromTokens(mbp float64) (*node, error) {
 }
 
 func (parser *Parser) Parse() (int, error) {
-	s := scanner{parser.Buffer, 0, 0}
+	s := scanner{parser.buffer, 0, 0}
 	for {
 		t, err := s.readToken()
 		if err != nil {

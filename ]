@@ -7,11 +7,11 @@ import (
 	"testing"
 )
 
-type scannerTestCase struct {
+type parseTestCase struct {
 	name           string
-	input          string
+	input          []byte
 	expectedTokens []token
-	expectedError  error
+	expectedCurrentTokenPos int
 }
 
 var invalidScannerTestCases = []scannerTestCase{
