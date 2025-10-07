@@ -9,7 +9,6 @@ type Parser struct {
 	buffer          []byte
 	tokens          []token
 	currentTokenPos int
-	//isError        bool
 }
 
 func NewParser(buffer []byte) Parser {
@@ -51,6 +50,7 @@ func (p *Parser) astFromTokens(mbp float64) (*node, error) {
 		if p.currentTokenPos == len(p.tokens) {
 			return root, nil
 		}
+
 		eofOrOp := p.tokens[p.currentTokenPos]
 		if eofOrOp.kind == eof || eofOrOp.value == ")" {
 			return root, nil

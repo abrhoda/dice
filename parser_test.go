@@ -15,6 +15,8 @@ var invalidParseTestCases = []parseTestCase{
 	{"Malformed single term input returns error", []byte("("), []token{}, 0},
 	{"Double operators in a row returns error", []byte("2**3"), []token{}, 0},
 	{"Unmatched parens returns error", []byte("(1+1"), []token{}, 0},
+	{"Invalid characters in input returns error", []byte("c+1"), []token{}, 0},
+	{"Missing operator between terms in input returns error", []byte("1 1"), []token{}, 0},
 }
 
 var validParseTestCases = []parseTestCase{
