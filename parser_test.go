@@ -11,6 +11,8 @@ type parseTestCase struct {
 	expectedResult int
 }
 
+// TODO this test relies on what the scanner readTokens does. ideally, this would be mocked so that the test decoupled from the scanner/token source?
+
 var invalidParseTestCases = []parseTestCase{
 	{"Malformed single term input returns error", []byte("("), []token{}, 0},
 	{"Double operators in a row returns error", []byte("2**3"), []token{}, 0},
