@@ -15,7 +15,7 @@ const (
 	dice
 	literal
 )
-const EOF = byte(0)
+const eofByte = byte(0)
 
 type token struct {
 	kind  tokenType
