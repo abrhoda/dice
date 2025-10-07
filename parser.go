@@ -31,7 +31,6 @@ var operatorWeights = map[string]weight{
 func (p *Parser) astFromTokens(mbp float64) (*node, error) {
 	var err error
 	root := &node{p.tokens[p.currentTokenPos], nil, nil}
-	fmt.Printf("at start of astFromTokens = %v\n", root.token)
 	p.currentTokenPos++
 	if root.token.kind == operator && root.token.value == "(" {
 		root, err = p.astFromTokens(0.0)
@@ -64,7 +63,6 @@ func (p *Parser) astFromTokens(mbp float64) (*node, error) {
 			break
 		}
 
-		fmt.Printf("eofOrOp = %v\n", eofOrOp)
 		p.currentTokenPos++
 		rhs, err := p.astFromTokens(rbp)
 		if err != nil {
