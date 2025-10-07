@@ -20,7 +20,7 @@ jobs:
         with:
           go-version: '1.25.x'
       #- name: Install dependencies
-      #  run: go get .
+      #  run: go get . # go mod tidy
       - name: Format
         run: make format
       - name: Build
@@ -31,7 +31,7 @@ jobs:
         run: make cover
       - name: Check Coverage Percent
         env:
-          THRESHOLD: "30.0"
+          THRESHOLD: "90.0"
           COVERAGE_FILE: "./out/coverage.out"
         run: |
           bash ./scripts/coverage_threshold.bash $COVERAGE_FILE $THRESHOLD

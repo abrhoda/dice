@@ -12,7 +12,9 @@ type parseTestCase struct {
 }
 
 var invalidParseTestCases = []parseTestCase{
-	{"", []byte(""), []token{}, 0},
+	{"Malformed single term input returns error", []byte("("), []token{}, 0},
+	{"Double operators in a row returns error", []byte("2**3"), []token{}, 0},
+	{"Unmatched parens returns error", []byte("(1+1"), []token{}, 0},
 }
 
 var validParseTestCases = []parseTestCase{
@@ -28,6 +30,7 @@ var validParseTestCases = []parseTestCase{
 var whiteSpaceParseTestCases = []parseTestCase{
 	{"Empty input returns 0", []byte(""), []token{{eof, ""}}, 0},
 	{"Blank input returns 0", []byte("       "), []token{{eof, ""}}, 0},
+	{"Whitespace is stripped from input and returns value as int", []byte("\n1\v\r+   1 \t  "), []token{{eof, ""}}, 2},
 }
 
 func TestParseWithValidInputString(t *testing.T) {
@@ -55,6 +58,18 @@ func TestParseWithValidInputString(t *testing.T) {
 
 			if res != tc.expectedResult {
 				t.Fatalf("Result of %d does not match test case's expected result %d\n", res, tc.expectedResult)
+			}
+		})
+	}
+}
+
+func TestParseWithInvalidInputString(t *testing.T) {
+	for _, tc := range invalidParseTestCases {
+		t.Run(tc.name, func(t *testing.T) {
+			p := NewParser(tc.input)
+			_, err := p.Parse()
+			if err == nil {
+				t.Fatalf("Expected error but found none.\n")
 			}
 		})
 	}
