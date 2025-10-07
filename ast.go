@@ -12,7 +12,6 @@ func walk(root *node) (int, error) {
 	if root.token.kind == eof {
 		return 0, nil
 	}
-	fmt.Printf("root node: %v\n", root)
 
 	if root.token.kind == operator {
 		if root.left == nil || root.right == nil {

@@ -105,13 +105,13 @@ type peekOrReadByteTestCase struct {
 var peekTestCases = []peekOrReadByteTestCase{
 	{"Gives the only byte when input is 1 byte in length and does not advance the scanner's internal position", "1", '1', 0},
 	{"Gives the first byte when input is more than 1 byte in length and does not advance the scanner's internal position", "d6", 'd', 0},
-	{"Gives the EOF byte when input is 0 bytes in length and does not advance the scanner's internal position", "", EOF, 0},
+	{"Gives the EOF byte when input is 0 bytes in length and does not advance the scanner's internal position", "", eofByte, 0},
 }
 
 var readTestCases = []peekOrReadByteTestCase{
 	{"Gives the only byte when input is 1 byte in length and does advance the scanner's internal position", "1", '1', 1},
 	{"Gives the first byte when input is more than 1 byte in length and not advance the scanner's internal position", "d6", 'd', 1},
-	{"Gives the EOF byte when input is 0 bytes in length and does not advance the scanner's internal position", "", EOF, 0},
+	{"Gives the EOF byte when input is 0 bytes in length and does not advance the scanner's internal position", "", eofByte, 0},
 }
 
 func TestScannerPeekByte(t *testing.T) {

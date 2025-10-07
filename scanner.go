@@ -15,7 +15,7 @@ func (scanner *scanner) peekByte() byte {
 	if (scanner.currentPos) < len(scanner.buffer) {
 		return scanner.buffer[scanner.currentPos]
 	}
-	return EOF
+	return eofByte
 }
 
 // readByte returns the byte at currentPos and advances the cursor
@@ -25,7 +25,7 @@ func (scanner *scanner) readByte() byte {
 		scanner.currentPos++
 		return scanner.buffer[p]
 	}
-	return EOF
+	return eofByte
 }
 
 // functions
@@ -47,7 +47,7 @@ func isOperator(b byte) bool {
 
 // limit the bytes to a subset
 func isValidByte(b byte) bool {
-	return isWhiteSpace(b) || isDigit(b) || isDiceCharacter(b) || isOperator(b) || b == EOF
+	return isWhiteSpace(b) || isDigit(b) || isDiceCharacter(b) || isOperator(b) || b == eofByte
 }
 
 // reads the next token from the scanner's bufio.reader
@@ -65,7 +65,7 @@ func (scanner *scanner) readToken() (token, error) {
 		return token{}, fmt.Errorf("Invalid byte (%c) found in buffer.", b)
 	}
 
-	if b == EOF {
+	if b == eofByte {
 		t := token{eof, string(scanner.buffer[scanner.startPos:scanner.currentPos])}
 		scanner.startPos = scanner.currentPos
 		return t, nil
@@ -106,7 +106,7 @@ func (scanner *scanner) readToken() (token, error) {
 			if !isDigit(p) {
 				return token{}, fmt.Errorf("Character after d/D not a digit. Found %c", p)
 			}
-		} else if isWhiteSpace(p) || isOperator(p) || p == EOF {
+		} else if isWhiteSpace(p) || isOperator(p) || p == eofByte {
 			break
 		} else {
 			return token{}, fmt.Errorf("Invalid byte (%c) found in token.", p)
