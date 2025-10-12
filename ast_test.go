@@ -22,6 +22,7 @@ var validWalkTestCases = []walkTestCase{
 	{"Operator - token returns left minus right", node{token{operator, "-"}, &node{token{literal, "3"}, nil, nil}, &node{token{literal, "5"}, nil, nil}}, -2},
 	{"Operator * token returns left multiplied by right", node{token{operator, "*"}, &node{token{literal, "3"}, nil, nil}, &node{token{literal, "5"}, nil, nil}}, 15},
 	{"Operator / token returns left divided right", node{token{operator, "/"}, &node{token{literal, "10"}, nil, nil}, &node{token{literal, "5"}, nil, nil}}, 2},
+	{"Division of 2 ints rounds down.", node{token{operator, "/"}, &node{token{literal, "3"}, nil, nil}, &node{token{literal, "2"}, nil, nil}}, 2},
 }
 
 func TestWalkWithValidAst(t *testing.T) {
